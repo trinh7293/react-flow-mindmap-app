@@ -8,31 +8,31 @@ import {
   applyEdgeChanges,
   XYPosition,
   InternalNode,
-} from '@xyflow/react';
-import { create } from 'zustand';
-import { nanoid } from 'nanoid/non-secure';
+} from "@xyflow/react";
+import { create } from "zustand";
+import { nanoid } from "nanoid/non-secure";
 
-import { MindMapNode } from './types';
+import { HandleDataFromServer, MindMapNode } from "./types";
 
 export type RFState = {
+  user: {
+    id: string;
+  };
   nodes: MindMapNode[];
   edges: Edge[];
   onNodesChange: OnNodesChange<MindMapNode>;
   onEdgesChange: OnEdgesChange;
   updateNodeLabel: (nodeId: string, label: string) => void;
   addChildNode: (parentNode: InternalNode, position: XYPosition) => void;
+  setDataLocal: HandleDataFromServer;
+  initNode: () => void;
 };
 
 const useStore = create<RFState>((set, get) => ({
-  nodes: [
-    {
-      id: 'root',
-      type: 'mindmap',
-      data: { label: 'React Flow Mind Map' },
-      position: { x: 0, y: 0 },
-      dragHandle: '.dragHandle',
-    },
-  ],
+  user: {
+    id: "personal",
+  },
+  nodes: [],
   edges: [],
   onNodesChange: (changes: NodeChange<MindMapNode>[]) => {
     set({
@@ -62,10 +62,10 @@ const useStore = create<RFState>((set, get) => ({
   addChildNode: (parentNode: InternalNode, position: XYPosition) => {
     const newNode: MindMapNode = {
       id: nanoid(),
-      type: 'mindmap',
-      data: { label: 'New Node' },
+      type: "mindmap",
+      data: { label: "New Node" },
       position,
-      dragHandle: '.dragHandle',
+      dragHandle: ".dragHandle",
       parentId: parentNode.id,
     };
 
@@ -78,6 +78,29 @@ const useStore = create<RFState>((set, get) => ({
     set({
       nodes: [...get().nodes, newNode],
       edges: [...get().edges, newEdge],
+    });
+  },
+  setDataLocal: (data) => {
+    set({
+      nodes: data.nodes || [],
+      edges: data.edges || [],
+    });
+  },
+  initNode: () => {
+    const nodes = get().nodes;
+    if (nodes.length > 0) {
+      return;
+    }
+    const newNode: MindMapNode = {
+      id: "root",
+      type: "mindmap",
+      data: { label: "React Flow Mind Map" },
+      position: { x: 0, y: 0 },
+      dragHandle: ".dragHandle",
+    };
+
+    set({
+      nodes: [...get().nodes, newNode],
     });
   },
 }));
